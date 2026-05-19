@@ -99,6 +99,36 @@ query PostcardMedia($feedItemId: ID!) {
         __typename
         id
         ... on PostcardImageMediaDetails {
+            inferenceMediaDecision {
+                __typename
+                ... on InferenceMediaRecognizedDecision {
+                    species {
+                        name
+                    }
+                    suggestions {
+                        species {
+                            name
+                        }
+                        confidence
+                    }
+                }
+                ... on InferenceMediaCannotDecideDecision {
+                    suggestions {
+                        species {
+                            name
+                        }
+                        confidence
+                    }
+                }
+                ... on InferenceMediaNotRecognizedDecision {
+                    suggestions {
+                        species {
+                            name
+                        }
+                        confidence
+                    }
+                }
+            }
             media {
                 id
                 thumbnailUrl
@@ -360,6 +390,11 @@ def fetch_postcard_media(
         created_at_raw = media.get("createdAt")
         species_list = item.get("species") or []
         suggestions = item.get("suggestions") or []
+        if not species_list and not suggestions:
+            inference_decision = item.get("inferenceMediaDecision") or {}
+            species_list = inference_decision.get("species") or []
+            suggestions = inference_decision.get("suggestions") or []
+
         bird_name = "unknown"
         if species_list:
             first_species = species_list[0] or {}
