@@ -133,6 +133,9 @@ query PostcardMedia($feedItemId: ID!) {
                 id
                 thumbnailUrl
                 createdAt
+                ... on MediaImage {
+                    contentUrl(size: ORIGINAL)
+                }
             }
         }
         ... on PostcardVideoMediaDetails {
@@ -384,8 +387,8 @@ def fetch_postcard_media(
         media = item.get("media") or {}
         typename = item.get("__typename", "PostcardImageMediaDetails")
         media_type = "video" if "Video" in typename else "image"
-        # Use contentUrl for videos, thumbnailUrl for images
-        url = media.get("contentUrl") if media_type == "video" else media.get("thumbnailUrl")
+        # Use contentUrl(ORIGINAL) for both images and videos
+        url = media.get("contentUrl") or media.get("thumbnailUrl")
         media_id = media.get("id") or item.get("id")
         created_at_raw = media.get("createdAt")
         species_list = item.get("species") or []
